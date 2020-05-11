@@ -81,13 +81,11 @@ struct random_tapeimage : random_memfile {
         REQUIRE(remaining == 0);
         REQUIRE(src == std::end(expected));
 
-        auto tail = std::vector< unsigned char > {
-            0x1, 0x0, 0x0, 0x0, // tape record
-            0x0, 0x0, 0x0, 0x0, // start-of-tape, should be prev
-            0x0, 0x0, 0x0, 0x0, // placeholder to get size right
-        };
+        auto tail = std::vector< unsigned char >(12, 0);
 
         const std::uint32_t eof = tape.size() + 12;
+        const std::uint32_t one  = 1;
+        std::memcpy(tail.data() + 0, &one,  sizeof(one));
         std::memcpy(tail.data() + 4, &prev, sizeof(prev));
         std::memcpy(tail.data() + 8, &eof,  sizeof(eof));
 
