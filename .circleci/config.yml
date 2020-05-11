@@ -85,7 +85,7 @@ jobs:
           name: Build the image (and run it??)
           command: |
             docker build -t lfp .
-            docker run -rm lfp
+            docker run --rm lfp
 
   gcc:
     docker:
