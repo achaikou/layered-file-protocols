@@ -64,8 +64,7 @@ jobs:
     machine: #for now using machine as we would need to run privileged container 
       image: ubuntu-1604:201903-01
     steps:
-      - attach_workspace: #should copy our workspace
-          at: ~/project
+      - checkout
       - run: ls -al ~/project #check that actually lfp is copied 
       - run: pwd #check where exactly we are 
 
