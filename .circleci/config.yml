@@ -128,15 +128,15 @@ workflows:
 
   build:
     jobs:
-      - gcc
-      - clang
-      - debug
-      - docs-and-examples
+  #    - gcc
+  #    - clang
+  #    - debug
+  #    - docs-and-examples
 
-  static-analysis:
-    jobs:
-      - scan-build
+  #static-analysis:
+  #  jobs:
+  #    - scan-build
 
-  runtime-analysis:
-    jobs:
-      - ubsan
+  #runtime-analysis:
+  #  jobs:
+  #    - ubsan
