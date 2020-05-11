@@ -65,8 +65,8 @@ jobs:
       image: ubuntu-1604:201903-01
     steps:
       - attach_workspace: #should copy our workspace
-          at: ~/lfp
-      - run: ls -al ~/lfp #check that actually lfp is copied 
+          at: ~/project
+      - run: ls -al ~/project #check that actually lfp is copied 
       - run: pwd #check where exactly we are 
 
       # for now ignore all the multiarch stuff
@@ -80,7 +80,7 @@ jobs:
       - run:
           name: Put Dockerfile to correct place
           command: |
-            cp ~/lfp/.circleci/Dockerfile ~/lfp/Dockerfile
+            cp ~/project/.circleci/Dockerfile ~/project/Dockerfile
             
       - run:
           name: Build the image (and run it??)
