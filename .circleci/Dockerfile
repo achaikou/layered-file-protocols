@@ -1,5 +1,5 @@
 FROM s390x/debian
-RUN useradd --create-home --shell /bin/bash ci
+#RUN useradd --create-home --shell /bin/bash ci
 WORKDIR /home/ci
 COPY --chown=ci:ci . /home/ci/lfp
 RUN apt-get update

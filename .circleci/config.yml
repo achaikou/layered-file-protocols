@@ -65,12 +65,12 @@ jobs:
       image: ubuntu-1604:201903-01
     steps:
       - checkout
-      - run: ls -al ~/project #check that actually lfp is copied 
-      - run: pwd #check where exactly we are 
+      #- run: ls -al ~/project #check that actually lfp is copied 
+      #- run: pwd #check where exactly we are 
 
       # attempt default flow from multiarch
       - run: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-      - run: docker run --rm -t s390x/debian uname -m
+      #- run: docker run --rm -t s390x/debian uname -m
 
       # we now are required to run commands inside docker
       # for now use a docker file, will see if it makes sense later
