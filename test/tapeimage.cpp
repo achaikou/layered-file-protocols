@@ -57,9 +57,20 @@ struct random_tapeimage : random_memfile {
             const auto n = std::min(record_size, remaining);
             auto head = std::vector< unsigned char >(12, 0);
             const std::uint32_t next = n + tape.size() + head.size();
+
             std::memcpy(head.data() + 0, &record, sizeof(record));
             std::memcpy(head.data() + 4, &prev,   sizeof(prev));
             std::memcpy(head.data() + 8, &next,   sizeof(next));
+
+        // suspected problem 
+        // copied from src, not sure if we need to add IS_BIG_ENDIAN as target_comple_definition also
+        // might be very much needed for other compilers
+        // Check the makefile-provided IS_BIG_ENDIAN, or the one set by gcc
+        #if (defined(IS_BIG_ENDIAN) || __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+            std::reverse(head.data() + 0, head.data() + 4);
+            std::reverse(head.data() + 4, head.data() + 8);
+            std::reverse(head.data() + 8, head.data() + 12);
+        #endif
 
             prev = tape.size();
             tape.insert(tape.end(), head.begin(), head.end());
