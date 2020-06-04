@@ -90,6 +90,13 @@ struct random_tapeimage : random_memfile {
         const std::uint32_t eof = tape.size() + 12;
         std::memcpy(tail.data() + 4, &prev, sizeof(prev));
         std::memcpy(tail.data() + 8, &eof,  sizeof(eof));
+
+        #if (defined(IS_BIG_ENDIAN) || __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+            std::reverse(tail.data() + 0, tail.data() + 4);
+            std::reverse(tail.data() + 4, tail.data() + 8);
+            std::reverse(tail.data() + 8, tail.data() + 12);
+        #endif
+
         tape.insert(tape.end(), tail.begin(), tail.end());
 
         REQUIRE(tape.size() == eof);
