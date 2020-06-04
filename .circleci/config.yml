@@ -75,16 +75,27 @@ jobs:
       # we now are required to run commands inside docker
       # for now use a docker file, will see if it makes sense later
 
+      #- restore_cache:
+      #    key: deps1-{{ .Branch }}-{{ checksum "~/project/.circleci/bigendian-setup-dockerfile" }}
+      
+      #- run:
+      #    name: Prepare the build
+      #    command: |
+      #    
+      #      cp ~/project/.circleci/bigendian-setup-dockerfile ~/project/Dockerfile
+      #      docker build -t lfp_bigendian_setup .
+ 
       - run:
           name: Put Dockerfile to correct place
           command: |
             cp ~/project/.circleci/Dockerfile ~/project/Dockerfile
-            
+            #cp ~/project/.circleci/bigendian-build-dockerfile ~/project/Dockerfile
+ 
       - run:
           name: Build the image (and run it??)
           command: |
             docker build -t lfp .
-            docker run --rm lfp
+            #docker run --rm lfp
 
   gcc:
     docker:
