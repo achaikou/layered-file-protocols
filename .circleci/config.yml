@@ -61,8 +61,8 @@ commands:
 
 jobs:
   bigendian:
-    machine: #for now using machine as we would need to run privileged container 
-      image: ubuntu-1604:201903-01
+    machine: #for now using machine as we would need to run privileged container  
+      image: ubuntu-1604:201903-01 #is docker 18.09, so should contain buildKit
     steps:
       - checkout
       #- run: ls -al ~/project #check that actually lfp is copied 
@@ -94,6 +94,7 @@ jobs:
       - run:
           name: Build the image (and run it??)
           command: |
+            export DOCKER_BUILDKIT=1
             docker build -t lfp .
             #docker run --rm lfp
 
