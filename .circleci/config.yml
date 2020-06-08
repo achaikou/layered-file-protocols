@@ -95,7 +95,7 @@ jobs:
           name: Build the image (and run it??)
           command: |
             export DOCKER_BUILDKIT=1
-            docker build -t lfp .
+            docker build -t lfp --progress plain .
             #docker run --rm lfp
 
   gcc:
