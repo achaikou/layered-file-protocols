@@ -118,6 +118,19 @@ jobs:
             export DOCKER_BUILDKIT=1
             docker build -t bigendian_setup --progress plain .
             
+      - run:
+          name: Save image #step for manual future upload
+          command: |
+            docker save bigendian_setup > bigendian_setup.tar
+            
+      - store_artifacts:
+          path: /project/bigendian_setup.tar  #assume it's there
+            
+      #docker load -i saved_tart #shouldn't be needed, build would create image
+      #docker images bigendian_setup #not sure if needed
+      #docker tag IMAGE:TAG REPO_URL:PORT/IMAGE:TAG #figure out tags
+      #docker push REPO_URL:PORT/IMAGE:TAG 
+            
   gcc:
     docker:
       - image: debian:stable
