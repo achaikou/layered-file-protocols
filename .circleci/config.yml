@@ -63,6 +63,7 @@ jobs:
   bigendian:
     machine: #for now using machine as we would need to run privileged container  
       image: ubuntu-1604:201903-01 #is docker 18.09, so should contain buildKit
+    resource_class: large
     steps:
       - checkout
       #- run: ls -al ~/project #check that actually lfp is copied 

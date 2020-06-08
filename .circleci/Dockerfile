@@ -9,5 +9,5 @@ RUN cmake -DBUILD_SHARED_LIBS=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUIL
 #WORKDIR /home/ci/lfp
 #RUN cmake --build build --target install
 #WORKDIR /home/ci/lfp/build
-RUN make -j2
+RUN make -j4
 RUN ctest --output-on-failure
