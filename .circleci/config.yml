@@ -99,6 +99,25 @@ jobs:
             docker build -t lfp --progress plain .
             #docker run --rm lfp
 
+  bigendian_docker_image:
+    machine: 
+      image: ubuntu-1604:201903-01 #is docker 18.09, so should contain buildKit
+    steps:
+      - checkout
+      # attempt default flow from multiarch
+      - run: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+ 
+      - run:
+          name: Put Dockerfile to correct place
+          command: |
+            cp ~/project/.circleci/images/setup/Dockerfile ~/project/Dockerfile
+ 
+      - run:
+          name: Build the image
+          command: |
+            export DOCKER_BUILDKIT=1
+            docker build -t bigendian_setup --progress plain .
+            
   gcc:
     docker:
       - image: debian:stable
@@ -168,6 +187,10 @@ workflows:
   build:
     jobs:
        - bigendian
+       - bigendian_docker_image:
+           filters:
+             tags:
+               only: /^ci-docker.*/
   #    - gcc
   #    - clang
   #    - debug
