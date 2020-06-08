@@ -191,11 +191,11 @@ workflows:
   docker:
     jobs:
        - bigendian_docker_image:
-         filters:
-           tags:
-             only: /^ci-docker.*/
-           branches:
-             ignore: /.*/
+           filters:
+             tags:
+               only: /^ci-docker.*/
+             branches:
+               ignore: /.*/
   #    - gcc
   #    - clang
   #    - debug
