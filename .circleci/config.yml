@@ -86,11 +86,36 @@ jobs:
       #      cp ~/project/.circleci/bigendian-setup-dockerfile ~/project/Dockerfile
       #      docker build -t lfp_bigendian_setup .
  
+ # setup image step, should be conditional
+ 
       - run:
-          name: Put Dockerfile to correct place
+          name: Put setup Dockerfile to correct place
           command: |
-            cp ~/project/.circleci/Dockerfile ~/project/Dockerfile
-            #cp ~/project/.circleci/bigendian-build-dockerfile ~/project/Dockerfile
+            cp ~/project/.circleci/images/setup/Dockerfile ~/project/Dockerfile
+ 
+      - run:
+          name: Build the setup image
+          command: |
+            export DOCKER_BUILDKIT=1
+            docker build -t lfp_bigendian_setup --progress plain .
+            
+      #lfp_bigendian_setup should be accessible for futher docker image command
+            
+      #expected this is not needed. Upload-to-container-registry step can be commented out for testing purpose
+             
+      #- run:
+      #    name: Save image #step for manual future upload
+      #    command: |
+      #      docker save lfp_bigendian_setup > lfp_bigendian_setup.tar
+      #      
+      #- store_artifacts:
+      #    path: /project/lfp_bigendian_setup.tar  #assume it's there
+ 
+ 
+      - run:
+          name: Put Build Dockerfile to correct place
+          command: |
+            cp ~/project/.circleci/images/build/Dockerfile ~/project/Dockerfile
  
       - run:
           name: Build the image (and run it??)
@@ -98,38 +123,6 @@ jobs:
             export DOCKER_BUILDKIT=1
             docker build -t lfp --progress plain .
             #docker run --rm lfp
-
-  bigendian_docker_image:
-    machine: 
-      image: ubuntu-1604:201903-01 #is docker 18.09, so should contain buildKit
-    steps:
-      - checkout
-      # attempt default flow from multiarch
-      - run: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
- 
-      - run:
-          name: Put Dockerfile to correct place
-          command: |
-            cp ~/project/.circleci/images/setup/Dockerfile ~/project/Dockerfile
- 
-      - run:
-          name: Build the image
-          command: |
-            export DOCKER_BUILDKIT=1
-            docker build -t bigendian_setup --progress plain .
-            
-      - run:
-          name: Save image #step for manual future upload
-          command: |
-            docker save bigendian_setup > bigendian_setup.tar
-            
-      - store_artifacts:
-          path: /project/bigendian_setup.tar  #assume it's there
-
-      #docker load -i saved_tart #shouldn't be needed, build would create image
-      #docker images bigendian_setup #not sure if needed
-      #docker tag IMAGE:TAG REPO_URL:PORT/IMAGE:TAG #figure out tags
-      #docker push REPO_URL:PORT/IMAGE:TAG 
             
   gcc:
     docker:
@@ -200,15 +193,6 @@ workflows:
   build:
     jobs:
        - bigendian
-               
-  docker:
-    jobs:
-       - bigendian_docker_image:
-           filters:
-             tags:
-               only: /^ci-docker.*/
-             branches:
-               ignore: /.*/
   #    - gcc
   #    - clang
   #    - debug
