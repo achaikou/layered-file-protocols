@@ -86,18 +86,34 @@ jobs:
       #      cp ~/project/.circleci/bigendian-setup-dockerfile ~/project/Dockerfile
       #      docker build -t lfp_bigendian_setup .
  
- # setup image step, should be conditional
+ # setup image step, for now condition and action do not match
  
       - run:
-          name: Put setup Dockerfile to correct place
+          name: Build image if needed
           command: |
-            cp ~/project/.circleci/images/setup/Dockerfile ~/project/Dockerfile
+          
+            #better option would be to use docker manifest inspect $IMAGE:$TAG but it's still experimental
+            function tag_exists() {
+                curl --silent -f -lSL https://index.docker.io/v1/repositories/$1/tags/$2 > /dev/null
+            }
+
+            if tag_exists eqachaikou/ci-tag-demo version1.0; then
+               cp ~/project/.circleci/images/setup/Dockerfile ~/project/Dockerfile
+               export DOCKER_BUILDKIT=1
+               docker build -t lfp_bigendian_setup --progress plain .
+            fi
  
-      - run:
-          name: Build the setup image
-          command: |
-            export DOCKER_BUILDKIT=1
-            docker build -t lfp_bigendian_setup --progress plain .
+ 
+     # - run:
+     #     name: Put setup Dockerfile to correct place
+     #     command: |
+     #       cp ~/project/.circleci/images/setup/Dockerfile ~/project/Dockerfile
+ 
+     # - run:
+     #     name: Build the setup image
+     #     command: |
+     #       export DOCKER_BUILDKIT=1
+     #       docker build -t lfp_bigendian_setup --progress plain .
             
       #lfp_bigendian_setup should be accessible for futher docker image command
             
