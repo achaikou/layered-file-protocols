@@ -97,7 +97,7 @@ jobs:
           name: "Print an env var stored in the Project1"
           command: echo $DOCKERHUB_USERNAME
  
-       - run:
+      - run:
           name: "Print an env var stored in the Project2"
           command: echo ${DOCKERHUB_USERNAME}
  
