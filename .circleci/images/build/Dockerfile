@@ -1,4 +1,5 @@
-FROM eqachaikou/ci_lfp_bigendian_setup:version1.0
+ARG image
+FROM image
 # TODO: is it possible to use environment variable here instead? 
 WORKDIR /home/ci
 COPY --chown=ci:ci . /home/ci/lfp

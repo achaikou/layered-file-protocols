@@ -177,7 +177,7 @@ jobs:
           name: Build the image (and run it??)
           command: |
             export DOCKER_BUILDKIT=1
-            docker build -t lfp --progress plain .
+            docker build -t lfp --progress plain --build-arg image=$DOCKERHUB_USERNAME/$SETUP_IMAGE_NAME:$SETUP_IMAGE_TAG  .
             #docker run --rm lfp
             
   gcc:
