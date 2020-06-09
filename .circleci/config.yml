@@ -117,12 +117,12 @@ jobs:
                #export DOCKER_BUILDKIT=0
                docker tag $SETUP_IMAGE_NAME $DOCKERHUB_USERNAME/$SETUP_IMAGE_NAME:$SETUP_IMAGE_TAG
                
-               docker save $SETUP_IMAGE_NAME > artifacts/lfp_bigendian_setup.tar
+               docker save $SETUP_IMAGE_NAME > ~/project/artifacts/lfp_bigendian_setup.tar
             fi
       
  
       - store_artifacts:
-          path: /project/artifacts  #assume it's there
+          path: ~/project/artifacts  #assume it's there
  
       - deploy:
           name: Upload image if exists and is allowed
