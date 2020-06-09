@@ -92,6 +92,15 @@ jobs:
       #      cp ~/project/.circleci/bigendian-setup-dockerfile ~/project/Dockerfile
       #      docker build -t lfp_bigendian_setup .
  
+ 
+      - run:
+          name: "Print an env var stored in the Project1"
+          command: echo $DOCKERHUB_USERNAME
+ 
+       - run:
+          name: "Print an env var stored in the Project2"
+          command: echo ${DOCKERHUB_USERNAME}
+ 
  # setup image step, for now condition and action do not match
  
       - run:
@@ -107,6 +116,7 @@ jobs:
                cp ~/project/.circleci/images/setup/Dockerfile ~/project/Dockerfile
                export DOCKER_BUILDKIT=1
                docker build -t $SETUP_IMAGE_NAME --progress plain .
+               export DOCKER_BUILDKIT=0
                docker tag $SETUP_IMAGE_NAME $DOCKERHUB_USERNAME/$SETUP_IMAGE_NAME:$SETUP_IMAGE_TAG
                echo "$DOCKERHUB_LFP_ACCESS_TOKEN" | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
                docker push $DOCKERHUB_USERNAME/$SETUP_IMAGE_NAME:$SETUP_IMAGE_TAG
