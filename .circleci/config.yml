@@ -129,6 +129,8 @@ jobs:
           command: |
           
             if [[ "$(docker images -q $DOCKERHUB_USERNAME/$SETUP_IMAGE_NAME:$SETUP_IMAGE_TAG 2> /dev/null)" == "" ]]; then
+               echo "No new setup image was buid"
+            else
                echo "Image exists locally"
                
                if [ -n "$CIRCLE_PR_NUMBER" ]; then
@@ -138,9 +140,7 @@ jobs:
                    #do we want this deployment as automated?
                    echo "$DOCKERHUB_LFP_ACCESS_TOKEN" | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
                    docker push $DOCKERHUB_USERNAME/$SETUP_IMAGE_NAME:$SETUP_IMAGE_TAG
-               fi
-            else
-               echo "No new setup image was buid"
+               fi               
             fi
  
  
