@@ -62,6 +62,7 @@ commands:
 jobs:
   bigendian:
     environment:
+      DOCKERHUB_USERNAME: eqachaikou
       SETUP_IMAGE_NAME: ci_lfp_bigendian_setup
       SETUP_IMAGE_TAG: version1.0 #increase to recreate setup
       #DOCKERHUB_USERNAME is defined in CircleCI projects settings - environment variables
@@ -93,15 +94,12 @@ jobs:
       #      docker build -t lfp_bigendian_setup .
  
  
-      - run:
-          name: "Print an env var stored in the Project1"
-          command: echo $DOCKERHUB_USERNAME
- 
-      - run:
-          name: "Print an env var stored in the Project2"
-          command: echo ${DOCKERHUB_USERNAME}
- 
  # setup image step, for now condition and action do not match
+ 
+      - run:
+          name: Create artifacts directory
+          command: |
+            mkdir artifacts
  
       - run:
           name: Build image if needed
@@ -116,10 +114,33 @@ jobs:
                cp ~/project/.circleci/images/setup/Dockerfile ~/project/Dockerfile
                export DOCKER_BUILDKIT=1
                docker build -t $SETUP_IMAGE_NAME --progress plain .
-               export DOCKER_BUILDKIT=0
+               #export DOCKER_BUILDKIT=0
                docker tag $SETUP_IMAGE_NAME $DOCKERHUB_USERNAME/$SETUP_IMAGE_NAME:$SETUP_IMAGE_TAG
-               echo "$DOCKERHUB_LFP_ACCESS_TOKEN" | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
-               docker push $DOCKERHUB_USERNAME/$SETUP_IMAGE_NAME:$SETUP_IMAGE_TAG
+               
+               docker save $SETUP_IMAGE_NAME > artifacts/lfp_bigendian_setup.tar
+            fi
+      
+ 
+      - store_artifacts:
+          path: /project/artifacts  #assume it's there
+ 
+      - deploy:
+          name: Upload image if exists and is allowed
+          command: |
+          
+            if [[ "$(docker images -q $DOCKERHUB_USERNAME/$SETUP_IMAGE_NAME:$SETUP_IMAGE_TAG 2> /dev/null)" == "" ]]; then
+               echo "Image exists locally"
+               
+               if [ -n "$CIRCLE_PR_NUMBER" ]; then
+                   echo "Run from PR. No deployment from PRs"
+               else
+                   echo "Not a PR. Secrets must be available"
+                   #do we want this deployment as automated?
+                   echo "$DOCKERHUB_LFP_ACCESS_TOKEN" | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
+                   docker push $DOCKERHUB_USERNAME/$SETUP_IMAGE_NAME:$SETUP_IMAGE_TAG
+               fi
+            else
+               echo "No new setup image was buid"
             fi
  
  
