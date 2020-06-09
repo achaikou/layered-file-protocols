@@ -61,7 +61,13 @@ commands:
 
 jobs:
   bigendian:
+    environment:
+      SETUP_IMAGE_NAME: ci_lfp_bigendian_setup
+      SETUP_IMAGE_TAG: version1.0 #increase to recreate setup
+      #DOCKERHUB_USERNAME is defined in CircleCI projects settings - environment variables
+      #DOCKERHUB_LFP_ACCESS_TOKEN is defined in CircleCI project settings - environment variables
     machine: #for now using machine as we would need to run privileged container  
+      # other option is to try remote docker with explicitly set docker version
       image: ubuntu-1604:201903-01 #is docker 18.09, so should contain buildKit
     resource_class: large
     steps:
@@ -97,10 +103,13 @@ jobs:
                 curl --silent -f -lSL https://index.docker.io/v1/repositories/$1/tags/$2 > /dev/null
             }
 
-            if tag_exists eqachaikou/ci-tag-demo version1.0; then
+            if ! tag_exists $DOCKERHUB_USERNAME/$SETUP_IMAGE_NAME $SETUP_IMAGE_TAG; then
                cp ~/project/.circleci/images/setup/Dockerfile ~/project/Dockerfile
                export DOCKER_BUILDKIT=1
-               docker build -t lfp_bigendian_setup --progress plain .
+               docker build -t $SETUP_IMAGE_NAME --progress plain .
+               docker tag $SETUP_IMAGE_NAME $DOCKERHUB_USERNAME/$SETUP_IMAGE_NAME:$SETUP_IMAGE_TAG
+               echo "$DOCKERHUB_LFP_ACCESS_TOKEN" | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
+               docker push $DOCKERHUB_USERNAME/$SETUP_IMAGE_NAME:$SETUP_IMAGE_TAG
             fi
  
  
