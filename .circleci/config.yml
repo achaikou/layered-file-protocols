@@ -62,7 +62,7 @@ commands:
 jobs:
   bigendian:
     docker:
-      - image: circleci/golang:1.13-alpine #image can be anything
+      - image: debian:stable #image can be anything
     #no increased resources, remote docker has just 2 cores
     steps:
       - checkout
