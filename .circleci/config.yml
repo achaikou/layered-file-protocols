@@ -137,7 +137,7 @@ jobs:
                docker save $SETUP_IMAGE_NAME > ~/project/artifacts/lfp_bigendian_setup.tar
                
             else  #load from restored cache
-               docker load -i $DOCKERHUB_USERNAME/$SETUP_IMAGE_NAME:$SETUP_IMAGE_TAG
+               docker load -i ~/project/artifacts/$DOCKERHUB_USERNAME/$SETUP_IMAGE_NAME:$SETUP_IMAGE_TAG
             fi
       
       # will this step save cache again, thus prolonging its life?
