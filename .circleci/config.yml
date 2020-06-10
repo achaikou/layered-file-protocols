@@ -60,7 +60,7 @@ commands:
             ctest --output-on-failure
 
 jobs:
-  bigendian:
+  bigendian_remote_docker: #also working
     docker:
       - image: cimg/base:2020.01 #image can be anything
     #no increased resources, remote docker has just 2 cores
@@ -84,7 +84,7 @@ jobs:
             docker build -t lfp --progress plain  .
         
 
-  bigendian_machine:
+  bigendian:
     environment:
       DOCKERHUB_USERNAME: eqachaikou
       SETUP_IMAGE_NAME: ci_lfp_bigendian_setup
@@ -92,7 +92,6 @@ jobs:
       #DOCKERHUB_USERNAME is defined in CircleCI projects settings - environment variables
       #DOCKERHUB_LFP_ACCESS_TOKEN is defined in CircleCI project settings - environment variables
     machine: #for now using machine as we would need to run privileged container  
-      # other option is to try remote docker with explicitly set docker version
       image: ubuntu-1604:201903-01 #is docker 18.09, so should contain buildKit
     resource_class: large
     steps:
@@ -106,17 +105,6 @@ jobs:
 
       # we now are required to run commands inside docker
       # for now use a docker file, will see if it makes sense later
-
-      #- restore_cache:
-      #    key: deps1-{{ .Branch }}-{{ checksum "~/project/.circleci/bigendian-setup-dockerfile" }}
-      
-      #- run:
-      #    name: Prepare the build
-      #    command: |
-      #    
-      #      cp ~/project/.circleci/bigendian-setup-dockerfile ~/project/Dockerfile
-      #      docker build -t lfp_bigendian_setup .
- 
  
  # setup image step, for now condition and action do not match
  
@@ -124,6 +112,10 @@ jobs:
           name: Create artifacts directory
           command: |
             mkdir artifacts
+            
+          
+      - restore_cache:
+          key: vers1-setup-image-{{ checksum "~/project/.circleci/images/setup/Dockerfile" }}
  
       - run:
           name: Build image if needed
@@ -134,7 +126,8 @@ jobs:
                 curl --silent -f -lSL https://index.docker.io/v1/repositories/$1/tags/$2 > /dev/null
             }
 
-            if ! tag_exists $DOCKERHUB_USERNAME/$SETUP_IMAGE_NAME $SETUP_IMAGE_TAG; then
+            if [ ! -f ~/project/artifacts/lfp_bigendian_setup.tar ]; then
+            #if ! tag_exists $DOCKERHUB_USERNAME/$SETUP_IMAGE_NAME $SETUP_IMAGE_TAG; then
                cp ~/project/.circleci/images/setup/Dockerfile ~/project/Dockerfile
                export DOCKER_BUILDKIT=1
                docker build -t $SETUP_IMAGE_NAME --progress plain .
@@ -142,54 +135,42 @@ jobs:
                docker tag $SETUP_IMAGE_NAME $DOCKERHUB_USERNAME/$SETUP_IMAGE_NAME:$SETUP_IMAGE_TAG
                
                docker save $SETUP_IMAGE_NAME > ~/project/artifacts/lfp_bigendian_setup.tar
+               
+            else  #load from restored cache
+               docker load -i $DOCKERHUB_USERNAME/$SETUP_IMAGE_NAME:$SETUP_IMAGE_TAG
             fi
       
+      # will this step save cache again, thus prolonging its life?
+      # if so, we have similar problem to image one where we would need to update cache manually if we want newer dependencies
+      - save_cache:
+          # key has no relation to branch, meaning it's the same between all the builds and etc
+          key: vers1-setup-image-{{ checksum "~/project/.circleci/images/setup/Dockerfile" }}
+          paths:
+            ~/project/artifacts/lfp_bigendian_setup.tar
+      
  
-      - store_artifacts:
-          path: ~/project/artifacts  #assume it's there
+    #  - store_artifacts:
+    #      path: ~/project/artifacts  #assume it's there
  
-      - deploy:
-          name: Upload image if exists and is allowed
-          command: |
-          
-            if [[ "$(docker images -q $DOCKERHUB_USERNAME/$SETUP_IMAGE_NAME:$SETUP_IMAGE_TAG 2> /dev/null)" == "" ]]; then
-               echo "No new setup image was buid"
-            else
-               echo "Image exists locally"
-               
-               if [ -n "$CIRCLE_PR_NUMBER" ]; then
-                   echo "Run from PR. No deployment from PRs"
-               else
-                   echo "Not a PR. Secrets must be available"
-                   #do we want this deployment as automated?
-                   echo "$DOCKERHUB_LFP_ACCESS_TOKEN" | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
-                   docker push $DOCKERHUB_USERNAME/$SETUP_IMAGE_NAME:$SETUP_IMAGE_TAG
-               fi               
-            fi
+    #  - deploy:
+    #      name: Upload image if exists and is allowed
+    #      command: |
+    #      
+    #        if [[ "$(docker images -q $DOCKERHUB_USERNAME/$SETUP_IMAGE_NAME:$SETUP_IMAGE_TAG 2> /dev/null)" == "" ]]; then
+    #           echo "No new setup image was buid"
+    #        else
+    #           echo "Image exists locally"
+    #           
+    #           if [ -n "$CIRCLE_PR_NUMBER" ]; then
+    #               echo "Run from PR. No deployment from PRs"
+    #           else
+    #               echo "Not a PR. Secrets must be available"
+    #               #do we want this deployment as automated?
+    #               echo "$DOCKERHUB_LFP_ACCESS_TOKEN" | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
+    #               docker push $DOCKERHUB_USERNAME/$SETUP_IMAGE_NAME:$SETUP_IMAGE_TAG
+    #           fi               
+    #        fi
  
- 
-     # - run:
-     #     name: Put setup Dockerfile to correct place
-     #     command: |
-     #       cp ~/project/.circleci/images/setup/Dockerfile ~/project/Dockerfile
- 
-     # - run:
-     #     name: Build the setup image
-     #     command: |
-     #       export DOCKER_BUILDKIT=1
-     #       docker build -t lfp_bigendian_setup --progress plain .
-            
-      #lfp_bigendian_setup should be accessible for futher docker image command
-            
-      #expected this is not needed. Upload-to-container-registry step can be commented out for testing purpose
-             
-      #- run:
-      #    name: Save image #step for manual future upload
-      #    command: |
-      #      docker save lfp_bigendian_setup > lfp_bigendian_setup.tar
-      #      
-      #- store_artifacts:
-      #    path: /project/lfp_bigendian_setup.tar  #assume it's there
  
  
       - run:
