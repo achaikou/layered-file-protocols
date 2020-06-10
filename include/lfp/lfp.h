@@ -57,6 +57,22 @@
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
+/* Check the makefile-provided IS_BIG_ENDIAN, or the one set by gcc
+ * And set local varialbe
+ */
+#if (defined(IS_BIG_ENDIAN) || \
+    (defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)))
+        #define LFP_IS_BIG_ENDIAN
+#endif
+
+/* Check the makefile-provided IS_LITTLE_ENDIAN, or the one set by gcc
+ * And set local varialbe
+ */
+#if (defined(IS_LITTLE_ENDIAN) || \
+    (defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)))
+        #define LFP_IS_LITTLE_ENDIAN
+#endif
+
 #if (__cplusplus)
 extern "C" {
 #endif
