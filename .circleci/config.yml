@@ -59,133 +59,6 @@ commands:
             cd build
             ctest --output-on-failure
 
-jobs:
-  bigendian_remote_docker: #also working
-    docker:
-      - image: cimg/base:2020.01 #image can be anything
-    #no increased resources, remote docker has just 2 cores
-    steps:
-      - checkout
-      - run:
-          name: Put Build Dockerfile to correct place
-          command: |
-            cp ~/project/.circleci/Dockerfile ~/project/Dockerfile
- 
-      - setup_remote_docker:
-          version: 18.09.3
-          #docker_layer_caching: true
-          
-      - run: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
- 
-      - run:
-          name: Build the image
-          command: |
-            export DOCKER_BUILDKIT=1
-            docker build -t lfp --progress plain  .
-        
-
-  bigendian:
-    environment:
-      DOCKERHUB_USERNAME: eqachaikou
-      SETUP_IMAGE_NAME: ci_lfp_bigendian_setup
-      SETUP_IMAGE_TAG: version1.0 #increase to recreate setup
-      #DOCKERHUB_USERNAME is defined in CircleCI projects settings - environment variables
-      #DOCKERHUB_LFP_ACCESS_TOKEN is defined in CircleCI project settings - environment variables
-    machine: #for now using machine as we would need to run privileged container  
-      image: ubuntu-1604:201903-01 #is docker 18.09, so should contain buildKit
-    resource_class: large #every class seems to be compiled by its own core, so the more the better for future
-    steps:
-      - checkout
-      #- run: ls -al ~/project #check that actually lfp is copied 
-      #- run: pwd #check where exactly we are 
-
-      # attempt default flow from multiarch
-      - run: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-      #- run: docker run --rm -t s390x/debian uname -m
-
-      # we now are required to run commands inside docker
-      # for now use a docker file, will see if it makes sense later
- 
- # setup image step, for now condition and action do not match
- 
-      - run:
-          name: Create artifacts directory
-          command: |
-            mkdir artifacts
-            
-          
-      - restore_cache:
-          key: vers1-setup-image-{{ checksum "~/project/.circleci/images/setup/Dockerfile" }}
- 
-      - run:
-          name: Build image if needed
-          command: |
-          
-            #better option would be to use docker manifest inspect $IMAGE:$TAG but it's still experimental
-            function tag_exists() {
-                curl --silent -f -lSL https://index.docker.io/v1/repositories/$1/tags/$2 > /dev/null
-            }
-
-            if [ ! -f ~/project/artifacts/lfp_bigendian_setup.tar ]; then
-            #if ! tag_exists $DOCKERHUB_USERNAME/$SETUP_IMAGE_NAME $SETUP_IMAGE_TAG; then
-               cp ~/project/.circleci/images/setup/Dockerfile ~/project/Dockerfile
-               export DOCKER_BUILDKIT=1
-               docker build -t $SETUP_IMAGE_NAME --progress plain .
-               #export DOCKER_BUILDKIT=0
-               docker tag $SETUP_IMAGE_NAME $DOCKERHUB_USERNAME/$SETUP_IMAGE_NAME:$SETUP_IMAGE_TAG
-               
-               docker save $SETUP_IMAGE_NAME > ~/project/artifacts/lfp_bigendian_setup.tar
-               
-            else  #load from restored cache
-               docker load -i ~/project/artifacts/lfp_bigendian_setup.tar
-               docker tag $SETUP_IMAGE_NAME $DOCKERHUB_USERNAME/$SETUP_IMAGE_NAME:$SETUP_IMAGE_TAG
-            fi
-      
-      # will this step save cache again, thus prolonging its life?
-      # if so, we have similar problem to image one where we would need to update cache manually if we want newer dependencies
-      - save_cache:
-          # key has no relation to branch, meaning it's the same between all the builds and etc
-          key: vers1-setup-image-{{ checksum "~/project/.circleci/images/setup/Dockerfile" }}
-          paths:
-            ~/project/artifacts/lfp_bigendian_setup.tar
-      
- 
-    #  - store_artifacts:
-    #      path: ~/project/artifacts  #assume it's there
- 
-    #  - deploy:
-    #      name: Upload image if exists and is allowed
-    #      command: |
-    #      
-    #        if [[ "$(docker images -q $DOCKERHUB_USERNAME/$SETUP_IMAGE_NAME:$SETUP_IMAGE_TAG 2> /dev/null)" == "" ]]; then
-    #           echo "No new setup image was buid"
-    #        else
-    #           echo "Image exists locally"
-    #           
-    #           if [ -n "$CIRCLE_PR_NUMBER" ]; then
-    #               echo "Run from PR. No deployment from PRs"
-    #           else
-    #               echo "Not a PR. Secrets must be available"
-    #               #do we want this deployment as automated?
-    #               echo "$DOCKERHUB_LFP_ACCESS_TOKEN" | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
-    #               docker push $DOCKERHUB_USERNAME/$SETUP_IMAGE_NAME:$SETUP_IMAGE_TAG
-    #           fi               
-    #        fi
- 
- 
- 
-      - run:
-          name: Put Build Dockerfile to correct place
-          command: |
-            cp ~/project/.circleci/images/build/Dockerfile ~/project/Dockerfile
- 
-      - run:
-          name: Build the image (and run it??)
-          command: |
-            export DOCKER_BUILDKIT=1
-            docker build -t lfp --progress plain --build-arg image=$DOCKERHUB_USERNAME/$SETUP_IMAGE_NAME:$SETUP_IMAGE_TAG  .
-            #docker run --rm lfp
-            
   gcc:
     docker:
       - image: debian:stable
@@ -249,12 +122,67 @@ jobs:
           type: RelWithDebInfo
           cxxflags: -fsanitize=address,undefined
 
+  bigendian:
+    machine:
+      image: ubuntu-1604:201903-01 #is docker 18.09, so should contain buildKit
+    resource_class: large
+    parameters:
+      setup_image_path:
+        type: string
+        default: ~/project/artifacts/lfp_bigendian_setup.tar
+      setup_image_path:
+        type: string
+        default: ci_lfp_bigendian_setup
+    steps:
+      - checkout
+      - run:
+          name: Simulate various architectures with qemu
+          command: |
+            docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+
+      #- run:
+      #    name: Create setup directory
+     #     command: |
+     #       mkdir artifacts
+
+      - restore_cache:
+          key: vers1-setup-image-{{ checksum "~/project/.circleci/images/setup/Dockerfile" }}
+
+      - run:
+          name: Assure setup image loaded locally
+          command: |
+
+            if [ ! -f << parameters.setup_image_path >> ]; then
+               echo "Local docker setup image not found. Recreating"
+
+               cp ~/project/.circleci/images/setup/Dockerfile ~/project/Dockerfile
+               export DOCKER_BUILDKIT=1
+               docker build -t << parameters.setup_image_name >> --progress plain .
+
+               docker save << parameters.setup_image_name >> > << parameters.setup_image_path >>
+
+            else
+               echo "Local docker setup image found. Loading"
+               docker load -i << parameters.setup_image_path >>
+            fi
+
+      - save_cache:
+          key: vers1-setup-image-{{ checksum "~/project/.circleci/images/setup/Dockerfile" }}
+          paths:
+            << parameters.setup_image_path >>
+
+      - run:
+          name: Build the image
+          command: |
+            cp ~/project/.circleci/images/build/Dockerfile ~/project/Dockerfile
+            export DOCKER_BUILDKIT=1
+            docker build -t lfp --progress plain --build-arg image=<< parameters.setup_image_name >>  .
+
 workflows:
   version: 2
 
-  build:
-    jobs:
-       - bigendian
+  #build:
+  #  jobs:
   #    - gcc
   #    - clang
   #    - debug
@@ -267,3 +195,7 @@ workflows:
   #runtime-analysis:
   #  jobs:
   #    - ubsan
+  
+  arch:
+    jobs:
+      - bigendian

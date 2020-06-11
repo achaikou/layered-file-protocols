@@ -81,24 +81,6 @@ struct random_tapeimage : random_memfile {
             remaining -= n;
         }
 
-        /*
-        auto tail = std::vector< unsigned char >(12, 0);
-
-        const std::uint32_t eof = tape.size() + 12;
-        const std::uint32_t one  = 1;
-        std::memcpy(tail.data() + 0, &one,  sizeof(one));
-        std::memcpy(tail.data() + 4, &prev, sizeof(prev));
-        std::memcpy(tail.data() + 8, &eof,  sizeof(eof));
-
-        #if defined(LFP_IS_BIG_ENDIAN)
-            std::reverse(tail.data() + 0, tail.data() + 4);
-            std::reverse(tail.data() + 4, tail.data() + 8);
-            std::reverse(tail.data() + 8, tail.data() + 12);
-        #endif
-
-        tape.insert(tape.end(), tail.begin(), tail.end());
-
-        REQUIRE(tape.size() == eof);*/
         REQUIRE(tape.size() == expected.size() + (records + 1) * 12);
         lfp_close(f);
         f = nullptr;
