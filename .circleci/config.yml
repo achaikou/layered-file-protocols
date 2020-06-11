@@ -59,6 +59,7 @@ commands:
             cd build
             ctest --output-on-failure
 
+jobs:
   gcc:
     docker:
       - image: debian:stable
