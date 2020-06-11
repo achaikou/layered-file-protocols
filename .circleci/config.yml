@@ -130,7 +130,7 @@ commands:
       setup_image_path:
         type: string
         default: ~/project/artifacts/lfp_bigendian_setup.tar
-      setup_image_path:
+      setup_image_name:
         type: string
         default: ci_lfp_bigendian_setup
     steps:
@@ -195,7 +195,7 @@ workflows:
   #runtime-analysis:
   #  jobs:
   #    - ubsan
-  
+
   arch:
     jobs:
       - bigendian
