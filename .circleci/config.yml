@@ -164,6 +164,7 @@ jobs:
 
             else
                echo "Local docker setup image found. Loading"
+               mkdir -p "$(dirname << parameters.setup_image_path >>)"
                docker load -i << parameters.setup_image_path >>
             fi
 
