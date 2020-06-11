@@ -137,14 +137,12 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Simulate various architectures with qemu
-          command: |
-            docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-
-      - run:
-          name: Create setup directory
+          name: Setup execution
           command: |
             mkdir -p "$(dirname << parameters.setup_image_path >>)"
+            export DOCKER_BUILDKIT=1 #shows step times
+            # the core functionality allowing us to build on whatever architecture
+            docker run --rm --privileged multiarch/qemu-user-static:s390x --reset -p yes
 
       - restore_cache:
           key: vers1-setup-image-{{ checksum "~/project/.circleci/images/setup/Dockerfile" }}
@@ -157,7 +155,7 @@ jobs:
                echo "Local docker setup image not found. Recreating"
 
                cp ~/project/.circleci/images/setup/Dockerfile ~/project/Dockerfile
-               export DOCKER_BUILDKIT=1
+               
                docker build -t << parameters.setup_image_name >> --progress plain .
 
                docker save << parameters.setup_image_name >> > << parameters.setup_image_path >>
@@ -176,7 +174,6 @@ jobs:
           name: Build the image
           command: |
             cp ~/project/.circleci/images/build/Dockerfile ~/project/Dockerfile
-            export DOCKER_BUILDKIT=1
             docker build -t lfp --progress plain --build-arg image=<< parameters.setup_image_name >>  .
 
 workflows:
