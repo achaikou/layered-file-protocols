@@ -141,10 +141,10 @@ jobs:
           command: |
             docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
 
-      #- run:
-      #    name: Create setup directory
-     #     command: |
-     #       mkdir artifacts
+      - run:
+          name: Create setup directory
+          command: |
+            mkdir -p "$(dirname << parameters.setup_image_path >>)"
 
       - restore_cache:
           key: vers1-setup-image-{{ checksum "~/project/.circleci/images/setup/Dockerfile" }}
@@ -164,7 +164,6 @@ jobs:
 
             else
                echo "Local docker setup image found. Loading"
-               mkdir -p "$(dirname << parameters.setup_image_path >>)"
                docker load -i << parameters.setup_image_path >>
             fi
 
