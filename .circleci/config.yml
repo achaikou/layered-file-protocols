@@ -126,7 +126,7 @@ jobs:
   bigendian:
     machine:
       image: ubuntu-1604:201903-01 #is docker 18.09, so should contain buildKit
-    resource_class: large
+    #resource_class: large
     parameters:
       setup_image_path:
         type: string
