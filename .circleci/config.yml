@@ -142,7 +142,7 @@ jobs:
             mkdir -p "$(dirname << parameters.setup_image_path >>)"
             export DOCKER_BUILDKIT=1 #shows step times
             # the core functionality allowing us to build on whatever architecture
-            docker run --rm --privileged multiarch/qemu-user-static:s390x --reset -p yes
+            docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
 
       - restore_cache:
           key: vers1-setup-image-{{ checksum "~/project/.circleci/images/setup/Dockerfile" }}
