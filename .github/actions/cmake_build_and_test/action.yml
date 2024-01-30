@@ -1,16 +1,16 @@
-name: Build with cmake
+name: Build and test with cmake
 description: Common steps for library build/test/install using cmake
 inputs:
-  type:
+  build_type:
     description: CMAKE_BUILD_TYPE (Release, Debug, etc)
     required: false
     default: Release
-  scan:
+  cmake_cmd_prefix:
     description: Cmake command prefix
     required: false
     default: ''
   cmakeflags:
-    description: CMAKE_CXX_FLAGS
+    description: Additional Cmake flags
     required: false
     default: ''
   cxxflags:
@@ -24,17 +24,17 @@ runs:
     run: |-
       mkdir build
       cd build
-      ${{ inputs.scan }} \
+      ${{ inputs.cmake_cmd_prefix }} \
       cmake -DBUILD_SHARED_LIBS=ON \
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-            -DCMAKE_BUILD_TYPE=${{ inputs.type }} \
+            -DCMAKE_BUILD_TYPE=${{ inputs.build_type }} \
             -DCMAKE_CXX_FLAGS=${{ inputs.cxxflags }} \
             ${{ inputs.cmakeflags }} \
             ..
     shell: bash
 
   - name: Build and install
-    run: "${{ inputs.scan }} cmake --build build --target install"
+    run: "${{ inputs.cmake_cmd_prefix }} cmake --build build --target install"
     shell: bash
 
   - name: Test

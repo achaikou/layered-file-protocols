@@ -14,7 +14,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: "./.github/actions/install_build_deps"
-    - uses: "./.github/actions/cmake_build"
+    - uses: "./.github/actions/cmake_build_and_test"
 
   clang:
     runs-on: ubuntu-latest
@@ -28,7 +28,7 @@ jobs:
     - uses: "./.github/actions/install_build_deps"
       with:
         extra: clang
-    - uses: "./.github/actions/cmake_build"
+    - uses: "./.github/actions/cmake_build_and_test"
 
   debug:
     runs-on: ubuntu-latest
@@ -37,9 +37,9 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: "./.github/actions/install_build_deps"
-    - uses: "./.github/actions/cmake_build"
+    - uses: "./.github/actions/cmake_build_and_test"
       with:
-        type: Debug
+        build_type: Debug
         cxxflags: "-Werror"
 
   docs-and-examples:
@@ -51,6 +51,6 @@ jobs:
     - uses: "./.github/actions/install_build_deps"
       with:
         extra: python3-breathe python3-sphinx doxygen
-    - uses: "./.github/actions/cmake_build"
+    - uses: "./.github/actions/cmake_build_and_test"
       with:
         cmakeflags: "-DBUILD_DOC=ON -DBUILD_EXAMPLES=ON"

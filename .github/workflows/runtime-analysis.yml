@@ -20,7 +20,7 @@ jobs:
       with:
         extra: libubsan1
 
-    - uses: "./.github/actions/cmake_build"
+    - uses: "./.github/actions/cmake_build_and_test"
       with:
-        type: RelWithDebInfo
+        build_type: RelWithDebInfo
         cxxflags: "-fsanitize=address,undefined"

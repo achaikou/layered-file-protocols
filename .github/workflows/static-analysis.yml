@@ -18,6 +18,6 @@ jobs:
       with:
         extra: clang clang-tools libfindbin-libs-perl
 
-    - uses: "./.github/actions/cmake_build"
+    - uses: "./.github/actions/cmake_build_and_test"
       with:
-        scan: scan-build --status-bugs
+        cmake_cmd_prefix: scan-build --status-bugs
